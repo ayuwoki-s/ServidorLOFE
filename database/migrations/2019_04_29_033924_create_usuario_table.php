@@ -20,6 +20,7 @@ class CreateUsuarioTable extends Migration
             $table->string('AMAUsuario', 45);
             $table->string('correoUsuario', 45);
             $table->string('nicknameUsuario', 45);
+            $table->string('Sexo', 45);
             $table->string('contrasenaUsuario', 45);
             $table->timestamps();
         });

@@ -19,5 +19,8 @@
         "popper.js": "^1.12",
         "vue": "^2.5.7",
         "vue-template-compiler": "^2.6.10"
+    },
+    "dependencies": {
+        "sweetalert2": "^8.11.1"
     }
 }

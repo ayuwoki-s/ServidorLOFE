@@ -72,7 +72,7 @@ class EmocionController extends Controller
      */
     public function update(Request $request)
     {
-        $emocion = Emocion::findOrFile($request->idEmocion);
+        $emocion = Emocion::findOrFail($request->idEmocion);
         $emocion->Emo_Nombre = $request->Emo_Nombre;
         $emocion->save();
     }
@@ -83,8 +83,10 @@ class EmocionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Emocion $id)
     {
-        //
+        //$emocion = Emocion::findOrFail($request->idEmocion);
+        $id->delete();
+        
     }
 }

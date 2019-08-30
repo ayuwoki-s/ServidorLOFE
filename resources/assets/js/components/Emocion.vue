@@ -38,12 +38,14 @@
                             <tbody>
                                 <tr v-for="emocion in arrayEmocion" :key="emocion.idEmocion">
                                     <td>
-                                        <button type="button" @click="abrirModla('emocion','actualizar',emocion)" class="btn btn-warning btn-sm">
+                                        <button type="button" @click="abrirModal('emocion','actualizar',emocion)" class="btn btn-warning btn-sm">
                                           <i class="icon-pencil"></i>
                                         </button> &nbsp;
-                                        <button type="button" class="btn btn-danger btn-sm">
-                                          <i class="icon-trash"></i>
-                                        </button>
+                                        
+                                            <button type="button" class="btn btn-danger btn-sm" @click="eliminarEmocion(emocion.Emocion_id)">
+                                                <i class="icon-trash"></i>
+                                            </button>
+                                        
                                     </td>
                                     <td v-text="emocion.Emo_Nombre"></td>
                                     <!--<td>
@@ -94,21 +96,20 @@
                                     <label class="col-md-3 form-control-label" for="text-input">Nombre</label>
                                     <div class="col-md-9">
                                         <input type="text" v-model="Emo_Nombre" class="form-control" placeholder="Nombre de la emocion">
-                                        <span class="help-block">(*) Ingrese el nombre de la Emocion</span>
                                     </div>
                                 </div>
-                                <!--<div class="form-group row">
-                                    <label class="col-md-3 form-control-label" for="email-input">Descripcion</label>
-                                    <div class="col-md-9">
-                                        <input type="email" id="descripcion" name="descripcion" class="form-control" placeholder="Enter Description">
+                                <div v-show="errorEmocion" class="form-group row div-error">
+                                    <div class="text-center text-error">
+                                        <div v-for="error in errorMostrarMsjEmocion" :key="error" v-text="error">
+                                        </div>
                                     </div>
-                                </div>-->
+                                </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cerrar</button>
                             <button type="button" v-if="tipoAccion==1" class="btn btn-primary" @click="registrarEmocion()">Guardar</button>
-                            <button type="button" v-if="tipoAccion==2" class="btn btn-primary">Actualizar</button>
+                            <button type="button" v-if="tipoAccion==2" class="btn btn-primary" @click="actualizarEmocion()">Actualizar</button>
                         </div>
                     </div>
                     <!-- /.modal-content -->
@@ -116,29 +117,6 @@
                 <!-- /.modal-dialog -->
             </div>
             <!--Fin del modal-->
-            <!-- Inicio del modal Eliminar -->
-            <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
-                <div class="modal-dialog modal-danger" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Eliminar Usuario</h4>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <span aria-hidden="true">X</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Estas seguro de eliminar al usuario?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-danger">Eliminar</button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-            <!-- Fin del modal Eliminar -->
         </main>
 </template>
 
@@ -146,11 +124,14 @@
     export default {
         data (){
             return{
+                Emocion_id : 0,
                 Emo_Nombre : '',
                 arrayEmocion : [],
                 modal : 0,
                 tituloModal : '',
-                tipoAccion : 0
+                tipoAccion : 0,
+                errorEmocion : 0,
+                errorMostrarMsjEmocion : []
             }
 
         },
@@ -165,8 +146,11 @@
                     })
                 },
             registrarEmocion(){
-                let me = this;
+               if(this.validarEmocion()){
+                    return;
+                }
 
+                let me = this;
                 axios.post('/emocion/registrar',{
                     'Emo_Nombre':this.Emo_Nombre
                 }).then(function (response){
@@ -175,6 +159,88 @@
                 }).catch(function (error) {
                     console.log(error);
                 });
+            },
+            actualizarEmocion(){
+                if(this.validarEmocion()){
+                    return;
+                }
+
+                let me = this;
+                axios.put('/emocion/actualizar',{
+                    'idEmocion':this.Emocion_id,
+                    'Emo_Nombre':this.Emo_Nombre
+                    //'hola': console.log(this.Emocion_id)
+                }).then(function (response){
+                    me.cerrarModal();
+                    me.listarEmocion();
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+
+            //metodo eliminar emociones
+            eliminarEmocion(Emocion_id){
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                buttonsStyling: false,
+                })
+
+                swalWithBootstrapButtons.fire({
+                title: '¿DESEAS ELIMINAR ESTE CAMPO?',
+                text: "UNA VEZ ELIMINADO NO PODRAS RECUPERARLO!!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'SI, BORRALO!',
+                cancelButtonText: 'NO, CANCELA!',
+                reverseButtons: true
+                }).then((result) => {
+                if (result.value) {
+
+                    //metodo para eliminar
+                    let me = this;
+                    axios.delete('/emocion/eliminar',{
+                        'idEmocion': Emocion_id, 
+                        'hola': console.log(Emocion_id)
+                    }).then(function (response){
+                        me.listarEmocion();
+                        swalWithBootstrapButtons.fire(
+                            'ELIMINADO!!',
+                            'El campo a sido eliminado exitosamente',
+                            'success'
+                        )
+                    }).catch(function (error) {
+                        console.log(error);
+                    }); //termina metodo para eliminar
+                } else if (
+                    // Read more about handling dismissals
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons.fire(
+                    'Cancelled',
+                    'Your imaginary file is safe :)',
+                    'error'
+                    )
+                }
+                })
+            },
+            //termina metodo eliminar emociones
+
+            validarEmocion(){
+                this.errorEmocion = 0;
+                this.errorMostrarMsjEmocion = [];
+
+                if(!this.Emo_Nombre){
+                    this.errorMostrarMsjEmocion.push("Ingrese nombre de la emocion");
+                } 
+
+                if(this.errorMostrarMsjEmocion.length) {
+                    this.errorEmocion = 1;
+                }
+
+                return this.errorEmocion;
             },
 
             cerrarModal(){
@@ -189,7 +255,7 @@
                         switch(accion){
                             case 'registrar':
                             {
-                                this.modal =1;
+                                this.modal = 1;
                                 this.tituloModal = 'Registrar Emocion';
                                 this.Emo_Nombre ='';
                                 this.tipoAccion = 1;
@@ -197,7 +263,13 @@
                             }
                             case 'actualizar':
                             {
-
+                                //console.log(data);
+                                this.modal = 1;
+                                this.tituloModal = 'Actualizar Emocion';
+                                this.tipoAccion = 2;
+                                this.Emocion_id = data['idEmocion'];
+                                this.Emo_Nombre = data['Emo_Nombre'];
+                                break;
                             }
                         }
                     }
@@ -219,5 +291,13 @@
         opacity: 1 !important;
         position: absolute !important;
         background-color: #3c29297a !important;
+    }
+    .div-error{
+        display: flex;
+        justify-content: center;
+    }
+    .text-error{
+        color: red !important;
+        font-weight: bold;
     }
 </style>

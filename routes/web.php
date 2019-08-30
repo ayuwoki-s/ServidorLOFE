@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::get('/emocion','EmocionController@index');
 Route::post('/emocion/registrar','EmocionController@store');
 Route::put('/emocion/actualizar','EmocionController@update');
+Route::delete('/emocion/eliminar','EmocionController@destroy');
 
 //RUTAS DE LA TABLA USUARIO
 Route::get('/usuario','UsuarioController@index');
